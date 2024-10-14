@@ -1,6 +1,14 @@
-from random import uniforom,choice
-from matplotlib.pyplot import plot 
+from random import uniform,choice
+from matplotlib import pyplot as plt
 from time import time
+import numpy as np
+
+def decode_colors(orient):
+    cols = [ (0,0,1), (0,1,0) , (1,0,0) ]
+    res = []
+    for i in range(len(orient)):
+        res.append(cols[orient[i]])
+    return res
 
 def det1(a,b,c):
     return (b[0]*c[1]-c[0]*b[1])-(a[0]*c[1]-a[1]*c[0])+(a[0]*b[1]-b[0]*a[1])
@@ -8,43 +16,77 @@ def det1(a,b,c):
 def det2(a,b,c):
     return ((a[0]-c[0])*(b[1]-c[1]))-((b[0]-c[0])*(a[1]-c[1]))
 
-points = [ (random()*randint(-1000,1000),random()*randint(-1000,1000)) for _ in range(10**5) ]
+def make_matrix_3x3(a,b,c):
+    return np.matrix([[a[0],a[1],1],[b[0],b[1],1],[c[0],c[1],1]])
 
-start = time()
-for i in range()det()
+def make_matrix_2x2(a,b,c):
+    return np.matrix([[a[0]-c[0],a[1]-c[1]],[b[0]-c[0],b[1]-c[1]]])
 
+def det_np_3x3(a,b,c):
+    return np.linalg.det(make_matrix_3x3(a,b,c))
 
-def calculate(generator,n,generator_name = "None",a=(-1.0,0.0),b=(1.0,1.0)):
-    points = generator()
+def det_np_2x2(a,b,c):
+    return np.linalg.det(make_matrix_2x2(a,b,c))
+
+def calculate(generator,n=100,epsilon=0,a=(-1.0,0.0),b=(1.0,1.0),detFun=det1):
+    states = [0,0,0]
+    points = generator(n)
+    orient = [ None for _ in range(n) ]
     for i in range(n):
-        
-def time_it(genertor_list)
-    for generator_function,generator_name in generator_list:
-        start = time()
-        results = calculate(points)
-        visualize(results)
-        end = time()
-        print (f"For {generator_name} elapsed time {end-start}")
+        orient[i] = orientation(points[i],a,b,epsilon,detFun)
+        states[orient[i]] += 1
+    z = zip(*points)
+    decoded = decode_colors(orient)
+    #plt.scatter(*z,c=decoded)
+    #plt.show()
+    return states
+def orientation(a,b,c,epsilon,detFun):
+    det = detFun(a,b,c)
+    if det < epsilon and det > -epsilon:
+        return 0 # Colinear
+    elif det > epsilon:
+        return 1 # Positive orientation to the line
+    else:
+        return 2 # Negative orientation to the line
 
-def First_generator():
-    return [ (uniform(-10**3,10**3),uniform(-10**3,10**3) for _ in range(10**5) ]
+def time_it(generator_list,epsilons,dets):
+    for generator_function,n,generator_name in generator_list:
+        for epsilon in epsilons:
+            for detFun in dets:
+                # detFun = det2
+                start = time()
+                states = calculate(generator_function,n=n,epsilon=epsilon,detFun=detFun)
+                end = time()
+                print (f"For {generator_name} elapsed time {end-start} for epsilon {epsilon}\nAbove: {states[1]} Below: {states[2]} Co-linear: {states[0]} ")
 
-def Second_generator():
-    return [ (uniform(-10**14,10**14,uniform(-10**14,10**14) for _ in range(10**5)  ]
+def First_generator(n):
+    return [ (uniform(-10**3,10**3),uniform(-10**3,10**3)) for _ in range(n) ]
 
-def Third_generator():
-    result = []
-    for _ in range(10**3):
-        x = uniform(-100,100)
-        result.append((x,uniform(-sqrt(100**2 - x**2),sqrt(100*2 - x**2)))
+def Second_generator(n):
+    return [ (uniform(-10**14,10**14),uniform(-10**14,10**14)) for _ in range(n)  ]
+
+def Third_generator(n):
+    result = [ ]
+    for _ in range(n):
+        # x = uniform(-100,100)
+        # result.append((x,uniform(-sqrt(100**2 - x**2),sqrt(100*2 - x**2)))
+        theta = uniform(0,2*np.pi)
+        R = 100
+        result.append((R*np.cos(theta),R*np.sin(theta)))
     return result
 
-def Foruth_generator():
+def Fourth_generator(n):
+    result = []
+    for _ in range(n):
+        t = uniform(-500,500)
+        result.append((t*2,t*0.1))
+    return result
+
     
+epsilons = [0,10**-14,10**-12,10**-10,10**-8]
 
-functions = [(First_generator,"10 ^ 5 from (-1000,1000)"), (Second_generator,"10 ^ 5 from (-10^14,10^14)"),(Third_generator,"Numbers that are constrained to a circle of radious 100 and center (0,0)"),(Fourth_generator,)]
+dets = [det1,det2,det_np_2x2,det_np_3x3]
 
+functions = [(First_generator,10**5,"10 ^ 5 from (-1000,1000)"), (Second_generator,10**5,"10 ^ 5 from (-10^14,10^14)"),(Third_generator,10**5,"Numbers that are constrained to a circle of radious 100 and center (0,0)"),(Fourth_generator,10**5,"Generates points on the line <x,y> = v*t, v=[0,0.1], t in R")]
 
-time_it()
-
-
+time_it(functions,epsilons,dets)
