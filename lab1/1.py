@@ -1,10 +1,9 @@
-from random import random, randint
+from random import uniforom,choice
 from matplotlib.pyplot import plot 
 from time import time
 
-
 def det1(a,b,c):
-    return (())
+    return (b[0]*c[1]-c[0]*b[1])-(a[0]*c[1]-a[1]*c[0])+(a[0]*b[1]-b[0]*a[1])
 
 def det2(a,b,c):
     return ((a[0]-c[0])*(b[1]-c[1]))-((b[0]-c[0])*(a[1]-c[1]))
@@ -27,8 +26,23 @@ def time_it(genertor_list)
         end = time()
         print (f"For {generator_name} elapsed time {end-start}")
 
+def First_generator():
+    return [ (uniform(-10**3,10**3),uniform(-10**3,10**3) for _ in range(10**5) ]
 
-functions = [(First_generator,"10 ^ 5 from (-1000,1000)"), (Second_generator,"10 ^ 5 from (-10^14,10^14)"),(Third_generator,"")]
+def Second_generator():
+    return [ (uniform(-10**14,10**14,uniform(-10**14,10**14) for _ in range(10**5)  ]
+
+def Third_generator():
+    result = []
+    for _ in range(10**3):
+        x = uniform(-100,100)
+        result.append((x,uniform(-sqrt(100**2 - x**2),sqrt(100*2 - x**2)))
+    return result
+
+def Foruth_generator():
+    
+
+functions = [(First_generator,"10 ^ 5 from (-1000,1000)"), (Second_generator,"10 ^ 5 from (-10^14,10^14)"),(Third_generator,"Numbers that are constrained to a circle of radious 100 and center (0,0)"),(Fourth_generator,)]
 
 
 time_it()
