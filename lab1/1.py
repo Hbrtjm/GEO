@@ -36,7 +36,7 @@ def calculate(generator,n=100,epsilon=0,a=(-1.0,0.0),b=(1.0,1.0),detFun=det1):
         orient[i] = orientation(points[i],a,b,epsilon,detFun)
         states[orient[i]] += 1
     z = zip(*points)
-    decoded = decode_colors(orient)
+    #decoded = decode_colors(orient)
     #plt.scatter(*z,c=decoded)
     #plt.show()
     return states
@@ -51,14 +51,18 @@ def orientation(a,b,c,epsilon,detFun):
 
 def time_it(generator_list,epsilons,dets):
     for generator_function,n,generator_name in generator_list:
+        with open(f"{generator_name}.txt","w") as f:
+            f.write("epsilon,det,time,s1,s2,s3\n")
         for epsilon in epsilons:
-            for detFun in dets:
-                # detFun = det2
+            for detFun,detName in dets:
+                #epsilon = 10
+                #detFun = det2
                 start = time()
                 states = calculate(generator_function,n=n,epsilon=epsilon,detFun=detFun)
                 end = time()
                 print (f"For {generator_name} elapsed time {end-start} for epsilon {epsilon}\nAbove: {states[1]} Below: {states[2]} Co-linear: {states[0]} ")
-
+                with open(f"{generator_name}.txt","a") as f:
+                    f.write(f"{epsilon},{detName},{end-start},{states[1]},{states[2]},{states[0]}\n")
 def First_generator(n):
     return [ (uniform(-10**3,10**3),uniform(-10**3,10**3)) for _ in range(n) ]
 
@@ -78,15 +82,17 @@ def Third_generator(n):
 def Fourth_generator(n):
     result = []
     for _ in range(n):
-        t = uniform(-500,500)
-        result.append((t*2,t*0.1))
+        #t = uniform(-500,500)
+        #result.append((t*2,t*0.1))
+        x = uniform(-1000,1000)
+        result.append((x,0.05*x+0.05))
     return result
 
     
 epsilons = [0,10**-14,10**-12,10**-10,10**-8]
 
-dets = [det1,det2,det_np_2x2,det_np_3x3]
+dets = [(det1,"First own"),(det2,"Second own"),(det_np_2x2,"First np"),(det_np_3x3,"Second np")]
 
-functions = [(First_generator,10**5,"10 ^ 5 from (-1000,1000)"), (Second_generator,10**5,"10 ^ 5 from (-10^14,10^14)"),(Third_generator,10**5,"Numbers that are constrained to a circle of radious 100 and center (0,0)"),(Fourth_generator,10**5,"Generates points on the line <x,y> = v*t, v=[0,0.1], t in R")]
+functions = [(First_generator,10**5,"10^5_from_(-1000,1000)"), (Second_generator,10**5,"10^5_from_(-10^14,10^14)"),(Third_generator,10**5,"Circle_of_radious_100_and_center_(0,0)"),(Fourth_generator,10**5,"Line_x,y_=v*t,_v=0,0.1,_t_in_R")]
 
 time_it(functions,epsilons,dets)
