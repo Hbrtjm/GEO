@@ -1,8 +1,8 @@
 
 *.txt
 *.txt*
-
-
+*.png
+*.tex
 __pycache__/
 env/
 venv/
