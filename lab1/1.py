@@ -10,10 +10,10 @@ def decode_colors(orient):
         res.append(cols[orient[i]])
     return res
 
-def det1(a,b,c):
+def det3x3(a,b,c):
     return (b[0]*c[1]-c[0]*b[1])-(a[0]*c[1]-a[1]*c[0])+(a[0]*b[1]-b[0]*a[1])
 
-def det2(a,b,c):
+def det2x2(a,b,c):
     return ((a[0]-c[0])*(b[1]-c[1]))-((b[0]-c[0])*(a[1]-c[1]))
 
 def make_matrix_3x3(a,b,c):
