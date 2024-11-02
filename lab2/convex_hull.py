@@ -3,15 +3,17 @@ from random import uniform
 import math
 from time import time
 
-def angle(point):
-    x, y = point
-    return math.atan2(y, x)
+def det3x3(a,b,c):
+    return (b[0]*c[1]-c[0]*b[1])-(a[0]*c[1]-a[1]*c[0])+(a[0]*b[1]-b[0]*a[1])
+
+def First_generator(n=100):
+    return [ (uniform(-100,100),uniform(-100,100)) for _ in range(n) ]
 
 def merge(L, R):
     new = []
     i = j = 0
     while i < len(L) and j < len(R):
-        if angle(L[i]) < angle(R[j]):
+        if det3x3((0,0),L[i],R[j]) < 0:
             new.append(L[i])
             i += 1
         else:
