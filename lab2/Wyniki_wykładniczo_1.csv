@@ -1,7 +1,7 @@
-Iloœæ punktów dla zbioru; Czas obliczeñ dla algorytmu Grahama (ms);Czas obliczeñ dla algorytmu Jarvisa (ms);Punkty na otoczce
-1e1;0,0ms;0,0ms;1
-1e2;0,0ms;0,0ms;1
-1e3;1,0ms;0,0ms;1
-1e4;6,0ms;3,0ms;1
-1e5;61,0ms;35,0ms;1
-1e6;619,55ms;184,61ms;1
+IloÅ›Ä‡ punktÃ³w dla zbioru; Czas obliczeÅ„ dla algorytmu Grahama (ms);Czas obliczeÅ„ dla algorytmu Jarvisa (ms);Punkty na otoczce
+1e1;0,01ms;0,01ms;1
+1e2;0,11ms;0,03ms;1
+1e3;1,06ms;0,42ms;1
+1e4;15,44ms;5,21ms;1
+1e5;123,97ms;26,04ms;1
+1e6;1,54s;265,8ms;1
