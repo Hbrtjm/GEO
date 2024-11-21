@@ -1,7 +1,7 @@
 from os import path, listdir
 from time import process_time
-from bitalg import __path__ as pkg_path
-
+# from bitalg import __path__ as pkg_path
+__path__ = "./"
 
 def get_test_path(lab_no, task_no, test_no):
     return path.join(pkg_path[0], f"tests/test{lab_no}_tests/task{task_no}/test_{lab_no}_{task_no}_{test_no}")
