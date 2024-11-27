@@ -1,4 +1,10 @@
+import matplotlib.pyplot as plt
+
 limit = 4
+polygon = []
+fig, ax = plt.subplots()
+save_to_file = False
+filename = "wyniki.txt"
 
 def previous_p(index, n):
     return (index + n - 1) % n
@@ -37,14 +43,14 @@ def get_min_index(points):
 
 def divide(polygon):
     n = len(polygon)
-    left_right = [0] * n
+    left_right = [1] * n
     min_index = get_min_index(polygon)
     max_index = get_max_index(polygon)
     left_right[max_index] = 0
     left_right[min_index] = 1 # Some problem may arise here, but it passes the tests
     i = max_index
     while i != min_index:
-        left_right[i] = 0
+        left_right[i] = -1
         i = next_p(i, n)
     i = min_index
     while i != max_index:
@@ -52,11 +58,9 @@ def divide(polygon):
         i = next_p(i, n)
     return left_right
 
-def check_if_inside(a, b, c, c_side, epsilon=1e-18):
+def check_if_inside(a, b, c, side, epsilon=1e-18):
     d = det(a, b, c)
-    if  c_side == 0:
-        return d < epsilon
-    return d > epsilon
+    return side * d > epsilon
 
 
 def build_events(polygon):
@@ -66,7 +70,6 @@ def build_events(polygon):
     left = previous_p(starter, n)
     right = next_p(starter, n)
     result = [starter]
-
     while left != end or right != end:
         if polygon[left][1] > polygon[right][1]:
             result.append(left)
@@ -87,7 +90,6 @@ def build_events(polygon):
 
 # Unused
 def draw_polygon_other(triangles, polygon, save_steps, step):
-    """Visualize the current state of the triangulation."""
     fig, ax = plt.subplots()
     x, y = zip(*polygon)
     ax.plot(x + (x[0],), y + (y[0],), 'k-', label="Polygon") 
@@ -105,12 +107,6 @@ def draw_polygon_other(triangles, polygon, save_steps, step):
         plt.savefig(f"step_{step}.png")
 
 def triangulation(polygon):
-    """
-    Perform triangulation of a monotone polygon.
-    :param polygon: List of vertices (x, y) in counter-clockwise order.
-    :return: List of diagonals [(i, j), ...], where i, j are vertex indices.
-    """
-    print(len(polygon))
     if not is_y_monotonic(polygon):
         print("Not monotonic!")
         return []
@@ -121,99 +117,84 @@ def triangulation(polygon):
     stack = [start, second]
 
     for i, event in enumerate(events):
-        # print(f"Stos:\n{stack}\Aktualny punkt:\n{event}\nPo stronie {'prawej' if left_right[event] == 0 else 'lewej'}")
         current_chain = left_right[event]
-        if left_right[stack[-1]] != current_chain: # and left_right[stack[-1]] != -1:
+        if left_right[stack[-1]] != current_chain:
             last = stack[-1]
             while len(stack) >= 1:
                 top = stack.pop()
                 if abs(event-top) > 1 and abs(event-top) != n-1:
                     triangulation_result.append([event, top])
-                    # print(f"Dodano przekątną z pierwszego warunku {[event,top]}")
-                    # draw_polygon_tri(polygon, [(polygon[x], polygon[y]) for (x, y) in triangulation_result])
             stack.append(last)
             stack.append(event)
         else:
             while len(stack) > 1 and check_if_inside(polygon[event], polygon[stack[-1]],polygon[stack[-2]],left_right[stack[-1]]):
-                    # print(f"Sprawdzanie, czy punkt jest wewnątrz {event} -> {stack[-1]} -> {stack[-2]}")
                     if abs(event-stack[-2]) > 1 and abs(event-stack[-2]) != n-1:
                         triangulation_result.append([event,stack[-2]])
-                        # print(f"Dodano przekątną z drugiego warunku {[event,stack[-2]]}")
-                        # draw_polygon_tri(polygon, [(polygon[x], polygon[y]) for (x, y) in triangulation_result])
                     stack.pop()
             stack.append(event)
-
-    # draw_polygon_tri(polygon, [(polygon[x], polygon[y]) for (x, y) in triangulation_result])
     return triangulation_result
 
-# Testing
-def convert_to_float32(table):
-    """
-    Converts a list of tuples containing float64 values to float32.
-    :param table: List of tuples [(float64, float64), ...]
-    :return: List of tuples [(float32, float32), ...]
-    """
-    return [(np.float32(x), np.float32(y)) for x, y in table]
 
-import matplotlib.pyplot as plt
-import numpy as np
-# from scipy.spatial import ConvexHull
-
-# Initialize global variables
-polygon = []
-fig, ax = plt.subplots()
+def add_polygon(triangulation,polygon):
+    n = len(polygon)
+    return triangulation + [ (i,(i+1)%n) for i in range(n) ]
 
 def update_plot():
     global limit, polygon
-    """Update the plot to display all current points and the result of the algorithm."""
     ax.clear()
-    ax.set_title("Click to add points")
+    ax.set_title("Wprowadź punkty za pomocą myszki klikając na obszar")
     ax.set_xlabel("X")
     ax.set_ylabel("Y")
     ax.grid(True)
     ax.axis("equal")
-    x_range = (-1, 1)  # Set the range for the x-axis
-    y_range = (-1, 1)  # Set the range for the y-axis
+    x_range = (-1, 1)
+    y_range = (-1, 1)
     ax.set_xlim(x_range)
     ax.set_ylim(y_range)
-
+    triangulation_result = []
     # Plot all points in the polygon
     if len(polygon) != 0:
-        polygon = convert_to_float32(polygon)
+        # polygon = convert_to_float32(polygon)
         x_coords, y_coords = zip(*polygon)
-        ax.scatter(x_coords, y_coords, color="blue", s=5, label="Points")
+        ax.scatter(x_coords, y_coords, color="blue", s=5, label="Punkty")
 
-    # If there are more than 3 points, compute and display the convex hull
-    n = len(polygon)
-    
+    n = len(polygon)  
     if n >= limit:
         for i in range(n):
             ax.plot(
                 [polygon[i][0], polygon[(i+1)%n][0]],
                 [polygon[i][1], polygon[(i+1)%n][1]],
-                'b-', label="Hull Edge" if "Hull Edge" not in ax.get_legend_handles_labels()[1] else "")
-        trinagles = triangulation(polygon)
-        for a, b in trinagles:
+                'b-', label="Bok wielokąta" if "Bok wielokąta" not in ax.get_legend_handles_labels()[1] else "")
+        triangulation_result = triangulation(polygon)
+        for a, b in triangulation_result:
             ax.plot(
                 [polygon[a][0], polygon[b][0]],
                 [polygon[a][1], polygon[b][1]],
-                'r-', label="Hull Edge" if "Hull Edge" not in ax.get_legend_handles_labels()[1] else "")
+                'r-', label="Przekątna" if "Przekątna" not in ax.get_legend_handles_labels()[1] else "")
         print(polygon)
-        print(trinagles)
+        print(triangulation_result)
+        if triangulation_result != []:    
+            with open(filename,'w') as file:
+                file.write(f'{polygon}\n{add_polygon(triangulation_result,polygon)}')
+                file.close()
     ax.legend()
     plt.draw()
 
 def onclick(event):
-    """Handle mouse click events to add points to the polygon."""
     if event.xdata is not None and event.ydata is not None:
         x, y = event.xdata, event.ydata
-        polygon.append((x, y))  # Append the clicked point to the polygon
+        polygon.append((x, y))
         update_plot()
 
 def main():
-    """Main function to set up the interactive plot."""
-    global limit
-    limit_string = input("Ile minimalnie punktów wielokąta: ")
+    global limit, save_to_file, filename
+    save_to_file_string = input("Czy wpisać wynik do pliku (1 - tak, w przeciwnym wypadku nie): ")
+    save_to_file = save_to_file_string == '1'
+    if save_to_file:
+        potential_filename = input("Proszę podać nazwę pliku (podstawowa nazwa to wyniki.txt): ")
+        if potential_filename:
+            filename = potential_filename
+    limit_string = input("Minimalna ilość punktów wielokąta: ")
     if limit_string.isnumeric():
         limit = int(limit_string)
     fig.canvas.mpl_connect("button_press_event", onclick)
